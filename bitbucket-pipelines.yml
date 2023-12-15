@@ -1,0 +1,32 @@
+image: python:3.9
+
+pipelines:
+  branches:  
+    master:
+      - step:
+          name: Install Dependencies
+          caches:
+            - pip
+          script:
+            - pip install --upgrade pip
+            - pip install -r requirements.txt
+            - pip install Sphinx
+            - pip install wheel twine
+
+      - step:
+          name: Create Python Package
+          script:
+            - python setup.py sdist bdist_wheel
+            - cp examples/* dist/
+            - cp requirements.txt dist/
+          artifacts:
+            - dist/*
+
+      #- step:
+      #    name: Generate Documentation
+      #    script:
+      #      - cd docs
+      #      - make html
+      #    artifacts:
+      #      - docs/_build/html/*
+
