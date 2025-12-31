@@ -137,54 +137,6 @@ class TestUtradeOrderConnect(unittest.TestCase):
         except Exception as e:
             print("Error occurred while canceling order:", str(e))
 
-    def test_g_place_bracketorder(self):
-        try:
-            # Call the place_bracketorder method
-            response = TestAttributes.order_connect.place_bracketorder(
-                exchangeSegment="NSECM",
-                exchangeInstrumentID=2885,
-                orderType="LIMIT",
-                orderSide="BUY",
-                disclosedQuantity=0,
-                orderQuantity=10,
-                limitPrice=59,
-                squarOff=1,
-                stopLossPrice=1,
-                trailingStoploss=1,
-                isProOrder=False,
-                orderUniqueIdentifier="454845",
-            )
-            TestAttributes.app_order_id = (
-                response and response["result"] and response["result"]["AppOrderID"]
-            )
-            print("Bracket Order: ", response)
-        except Exception as e:
-            print("Error occurred while placing bracket order:", str(e))
-
-    def test_h_modify_bracketorder(self):
-        try:
-            # Call the modify_bracketorder method
-            response = TestAttributes.order_connect.modify_bracketorder(
-                appOrderID=TestAttributes.app_order_id,
-                orderQuantity=2,
-                limitPrice=22,
-                stopLossPrice=0.2,
-                clientID=TestAttributes.client_id,
-            )
-            print("Bracket Order: ", response)
-        except Exception as e:
-            print("Error occurred while modifying bracket order:", str(e))
-
-    def test_i_bracketorder_cancel(self):
-        try:
-            # Call the bracketorder_cancel method
-            response = TestAttributes.order_connect.bracketorder_cancel(
-                appOrderID=TestAttributes.app_order_id
-            )
-            print(" Place Bracketorder : ", response)
-        except Exception as e:
-            print("Error occurred while canceling bracket order:", str(e))
-
     def test_j_get_profile(self):
         try:
             # Call the get_profile method
@@ -257,43 +209,6 @@ class TestUtradeOrderConnect(unittest.TestCase):
     #         clientID=TestAttributes.clientID,
     #     )
     #     print("Position Convert : ", response)
-
-    def test_u_place_cover_order(self):
-        try:
-            # Call the place_cover_order method
-            response = TestAttributes.order_connect.place_cover_order(
-                exchangeSegment="NSECM",
-                exchangeInstrumentID=2885,
-                orderSide="BUY",
-                orderType="LIMIT",
-                orderQuantity=2,
-                disclosedQuantity=1,
-                limitPrice=1802,
-                stopPrice=1899,
-                orderUniqueIdentifier="454845",
-                clientID=TestAttributes.client_id,
-            )
-            print("Cover Order : ", response)
-
-            if not 'error' in response:
-                # Call the modify_cover_order method
-                response = TestAttributes.order_connect.modify_cover_order(
-                    appOrderID= response['result']['AppOrderID'],
-                    orderQuantity=3,
-                    limitPrice=1802,
-                    stopPrice=1899,
-                    clientID=TestAttributes.client_id,
-                )
-                print("Modify Cover Order : ", response)
-
-            if not 'error' in response:
-                response = TestAttributes.order_connect.exit_cover_order(
-                    appOrderID= response['result']['AppOrderID'],
-                    clientID=TestAttributes.client_id,
-                )
-                print("Exit Cover Order : ", response)
-        except Exception as e:
-            print("Error occurred while placing cover order:", str(e))
 
     def test_v_cancelall_order(self):
         try:
