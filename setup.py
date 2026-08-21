@@ -2,12 +2,12 @@ from setuptools import find_packages, setup
 
 setup(
     name="utradeconnect",
-    version="1.0.4",
+    version="1.1.0",
     description='A comprehensive Python SDK for the uTrade Connect trading platform.',
     package_dir={"": "src"},
     packages=["utradeconnect"],
     package_data={'utradeconnect': ['config.ini']},
-    long_description=open('README.md').read(),
+    long_description=open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',
     url='https://utradesolutions.com',
     author='uTrade Solutions Pvt Ltd',
@@ -26,7 +26,7 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Office/Business :: Financial :: Investment',
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.6',
     keywords='trading investment platform api rest websocket',
     install_requires=[
         "bidict==0.21.2",

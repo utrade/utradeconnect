@@ -1,4 +1,4 @@
-# ``uTrade Connect`` Python SDK ![version](https://img.shields.io/badge/version-1.0.4-blue)
+# ``uTrade Connect`` Python SDK ![version](https://img.shields.io/badge/version-1.1.0-blue)
 
 `uTrade Connect` encompasses a suite of `REST-like APIs` designed to expose a broad 
 spectrum of functionalities crucial for the development of a comprehensive `investment 
@@ -82,7 +82,7 @@ connect_object = UtradeConnect(
   - Conversely, if `interactive APIs` are preferred, furnish the requisite credentials for interactive functionality.
 
     ```python
-    utradeConnect = UtradeConnect(api_key=API_KEY, secretKey=API_SECRET, source=source, root=BASE_URL)
+    utradeConnect = UtradeConnect(apiKey=API_KEY, secretKey=API_SECRET, source=source, root=BASE_URL)
     ```
 ###
 ### API Usage
@@ -97,7 +97,7 @@ connect_object = UtradeConnect(
         >   The acquisition of an `access token` is `mandatory for client interactive login`.
           - For Client Interactive login
              ```python
-              response = utradeConnect.interactive_login(accessToken)
+              response = utradeConnect.interactive_login(accessToken, uniqueKey)
             ```
 ###
 + #### Subscribe Symbol
@@ -135,6 +135,18 @@ connect_object = UtradeConnect(
             )
       ```
 ###
++ #### Strike Price
+  + Lists strike prices for an option chain.
+     ```python
+          response = utradeConnect.get_strike_price(
+            exchangeSegment=2,
+            series="OPTIDX",
+            symbol="NIFTY",
+            expiryDate="27APR2023",
+            optionType="PE",
+        )
+      ```
+###
 + #### Place Order Request
   + To execute an order, leverage the `Interactive API`. The resulting response will include an `AppOrderId`.
     ```python
@@ -155,13 +167,119 @@ connect_object = UtradeConnect(
     ```
 ###
 + #### Cancel Order Request
-  + To cancel an order, leverage the `Interactive API`. The resulting response will include an `AppOrderId`.
+  + To cancel an order, use the Interactive API. The response includes `AppOrderID` under `result`.
     ```python
-          response = utradeConnect.place_order(
-            appOrderID = OrderID
+          response = utradeConnect.cancel_order(
+            appOrderID=OrderID,
+            orderUniqueIdentifier="123abc",
             clientID="C1",
         )
     ``` 
+###
++ #### Place Spread Order Request
+  + Place a spread order. The response includes an `AppOrderId`.
+    ```python
+          response = utradeConnect.place_spread_order(
+            exchangeSegment="NSEFO",
+            exchangeInstrumentID=13620424,
+            productType="NRML",
+            action="BUY",
+            orderType="LIMIT",
+            orderDuration="DAY",
+            quantity=75,
+            spreadPrice=1000,
+            spreadExchangeInstrumentID=13620424,
+            clientID="C1",
+        )
+    ```
+###
++ #### Modify Spread Order Request
+    ```python
+          response = utradeConnect.modify_spread_order(
+            orderID="1240992685",
+            spreadPrice=900,
+            quantity=75,
+            productType="NRML",
+            action="BUY",
+            orderDuration="DAY",
+            spreadExchangeInstrumentID=13687399,
+            clientID="C1",
+        )
+    ```
+###
++ #### Cancel Spread Order Request
+    ```python
+          response = utradeConnect.cancel_spread_order(
+            orderID="1240992685",
+            clientID="C1",
+        )
+    ```
+###
++ #### Spread Order Book
+    ```python
+          response = utradeConnect.get_spread_order_book(clientID="C1")
+    ```
+###
++ #### Order Margin
+  + Required vs available margin for a prospective order.
+    ```python
+          response = utradeConnect.get_order_margin(
+            portfolio=[
+                {
+                    "exchange": 1,
+                    "exchangeInstrumentId": 2885,
+                    "productType": "NRML",
+                    "orderType": "LIMIT",
+                    "orderSide": "BUY",
+                    "quantity": 1,
+                    "price": 1200,
+                    "stopPrice": 1180,
+                    "orderSessionType": "NORMAL",
+                }
+            ],
+            clientID="C1",
+        )
+    ```
+###
++ #### Modify Order Margin
+    ```python
+          response = utradeConnect.get_modify_order_margin(
+            orderID="1210910568",
+            instrumentInformation={
+                "exchange": 1,
+                "exchangeInstrumentId": 2885,
+                "orderSide": "BUY",
+                "orderSessionType": 1,
+                "productType": "NRML",
+                "orderType": "LIMIT",
+                "quantity": 1,
+                "price": 1200,
+                "stopPrice": 1190,
+            },
+            clientID="C1",
+        )
+    ```
+###
++ #### Square Off
+    ```python
+          response = utradeConnect.squareoff(
+            exchangeSegment="NSECM",
+            exchangeInstrumentID=2885,
+            productType="MIS",
+            squareoffMode="Regular",
+            squareOffQtyValue=1,
+            positionSquareOffQuantityType="ExactQty",
+            clientID="C1",
+        )
+    ```
+###
++ #### Square Off All
+    ```python
+          response = utradeConnect.squareoff_all(
+            squareoffMode="Regular",
+            clientID="C1",
+        )
+    ```
 ###
 > Refer to the [**Python client postman documentation**]() for the complete list of supported methods.
 
