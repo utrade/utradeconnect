@@ -182,7 +182,20 @@ class TestUtradeMarketConnect(unittest.TestCase):
         except Exception as e:
             print("Error occurred: ", str(e))
 
-    def test_n_get_index_list(self):
+    def test_n_get_strike_price(self):
+        try:
+            response = TestAttributes.market_connect.get_strike_price(
+                exchangeSegment=2,
+                series="OPTIDX",
+                symbol="NIFTY",
+                expiryDate="27APR2023",
+                optionType="PE",
+            )
+            print("Strike Price : ", response)
+        except Exception as e:
+            print("Error occurred: ", str(e))
+
+    def test_o_get_index_list(self):
         try:
             # Call the get_index_list method
             response = TestAttributes.market_connect.get_index_list(exchangeSegment=2)
@@ -190,7 +203,7 @@ class TestUtradeMarketConnect(unittest.TestCase):
         except Exception as e:
             print("Error occurred: ", str(e))
     
-    def test_o_search_by_instrumentid(self):
+    def test_p_search_by_instrumentid(self):
         instruments = [{'exchangeSegment': 2, 'exchangeInstrumentID': 116472}]
         try:
             # Call the search_by_instrumentid method
@@ -199,7 +212,7 @@ class TestUtradeMarketConnect(unittest.TestCase):
         except Exception as e:
             print("Error occurred: ", str(e))
     
-    def test_p_search_by_scriptname(self):
+    def test_q_search_by_scriptname(self):
         try:
             # Call the search_by_instrumentid method
             response = TestAttributes.market_connect.search_by_scriptname(searchString='RELIANCE')
@@ -207,7 +220,7 @@ class TestUtradeMarketConnect(unittest.TestCase):
         except Exception as e:
             print("Error occurred: ", str(e))
     
-    def test_q_marketdata_logout(self):
+    def test_r_marketdata_logout(self):
         try:
             # Call the marketdata_logout method
             response = TestAttributes.market_connect.marketdata_logout()

@@ -15,12 +15,14 @@ class UtradeOrderConnect(UtradeCommon):
         # initialize the UtradeCommon class
         super().__init__(config=config, apiKey=apiKey, secretKey=secretKey)
 
-    def interactive_login(self, accessToken=None):
+    def interactive_login(self, accessToken=None, uniqueKey=None):
         """
         Initiates an interactive login and retrieves a user token.
 
         Args:
             accessToken (str, optional): Access token for the user. Defaults to None.
+            uniqueKey (str, optional): One-time unique key from host lookup, if the
+                server requires it. Defaults to None.
 
         Returns:
             dict: The API response containing the user token.
@@ -37,6 +39,8 @@ class UtradeOrderConnect(UtradeCommon):
             }
             if accessToken:
                 params["accessToken"]= accessToken
+            if uniqueKey:
+                params["uniqueKey"] = uniqueKey
 
             # Make a POST request to the "user.login" endpoint
             response = self.apiRequest._post("user.login", params)
@@ -52,7 +56,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeTokenException("Interactive login failed", 400)
+            raise UtradeTokenException("Interactive login failed: " + str(e), 400)
         
 
     def get_order_book(self, clientID=None):
@@ -83,7 +87,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeGeneralException("Get order book failed", 500)
+            raise UtradeGeneralException("Get order book failed: " + str(e), 500)
 
     def place_order(
         self,
@@ -150,7 +154,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeOrderException("Place order failed", 500)
+            raise UtradeOrderException("Place order failed: " + str(e), 500)
 
     def modify_order(
         self,
@@ -214,7 +218,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeOrderException("Modify order failed", 500)
+            raise UtradeOrderException("Modify order failed: " + str(e), 500)
 
     def get_order_history(self, appOrderID, clientID=None):
         """
@@ -245,7 +249,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeOrderException("Get order history failed", 500)
+            raise UtradeOrderException("Get order history failed: " + str(e), 500)
         
 
     def cancel_order(self, appOrderID, orderUniqueIdentifier, clientID=None):
@@ -277,11 +281,16 @@ class UtradeOrderConnect(UtradeCommon):
             # Make a DELETE request to the "order.cancel" endpoint with the specified parameters
             response = self.apiRequest._delete("order.cancel", params)
 
-            # Return the API response
+            # Converter wraps cancel result in a one-element array.
+            result = response.get("result") if isinstance(response, dict) else None
+            if isinstance(result, list) and len(result) == 1 and isinstance(result[0], dict):
+                response = dict(response)
+                response["result"] = result[0]
+
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeOrderException("Cancel order failed", 500)
+            raise UtradeOrderException("Cancel order failed: " + str(e), 500)
 
     def get_profile(self, clientID=None):
         """
@@ -311,7 +320,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeGeneralException("Get profile failed", 500)
+            raise UtradeGeneralException("Get profile failed: " + str(e), 500)
 
     def get_balance(self, clientID=None):
         """Get balance information related to limits on equities, derivatives, upfront margin, available exposure,
@@ -334,7 +343,7 @@ class UtradeOrderConnect(UtradeCommon):
                 # Return the API response
                 return response
             except (Exception, UtradeTokenException) as e:
-                raise UtradeGeneralException("Get balance failed", 500)
+                raise UtradeGeneralException("Get balance failed: " + str(e), 500)
         else:
             # Notify that balance API is available for retail API users only
             print(
@@ -370,7 +379,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeGeneralException("Get trade failed", 500)
+            raise UtradeGeneralException("Get trade failed: " + str(e), 500)
 
     def get_holding(self, clientID=None):
         """Retrieve long-term holdings with the broker using the Holdings API.
@@ -392,7 +401,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeGeneralException("Get holding failed", 500)
+            raise UtradeGeneralException("Get holding failed: " + str(e), 500)
 
     def get_position_daywise(self, clientID=None):
         """
@@ -421,7 +430,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeGeneralException("Get position daywise failed", 500)
+            raise UtradeGeneralException("Get position daywise failed: " + str(e), 500)
 
     def get_position_netwise(self, clientID=None):
         # The positions API positions by net. Net is the actual, current net position portfolio
@@ -440,7 +449,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeGeneralException("Get position netwise failed", 500)
+            raise UtradeGeneralException("Get position netwise failed: " + str(e), 500)
 
     def get_dealerposition_netwise(self, clientID=None):
         """Retrieve dealer positions by net, which represents the current net position portfolio.
@@ -462,7 +471,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeGeneralException("Get dealer position netwise failed", 500)
+            raise UtradeGeneralException("Get dealer position netwise failed: " + str(e), 500)
 
     def get_dealerposition_daywise(self, clientID=None):
         """Retrieve dealer positions by day, which is a snapshot of the buying and selling activity for a particular day.
@@ -484,7 +493,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeGeneralException("Get dealer position daywise failed", 500)
+            raise UtradeGeneralException("Get dealer position daywise failed: " + str(e), 500)
 
     def get_dealer_orderbook(self, clientID=None):
         """Request the order book, which provides the states of all the orders placed by a user, including dealer orders."""
@@ -503,7 +512,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeGeneralException("Get dealer order book failed", 500)
+            raise UtradeGeneralException("Get dealer order book failed: " + str(e), 500)
 
     def get_dealer_tradebook(self, clientID=None):
         """Retrieve the dealer trade book, which contains a list of all trades executed on a particular day that were placed by the user.
@@ -525,7 +534,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeGeneralException("Get dealer trade book failed", 500)
+            raise UtradeGeneralException("Get dealer trade book failed: " + str(e), 500)
 
     def convert_position(
         self,
@@ -579,7 +588,7 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeGeneralException("Convert position failed", 500)
+            raise UtradeGeneralException("Convert position failed: " + str(e), 500)
         
     def cancelall_order(self, exchangeSegment, exchangeInstrumentID):
         """Cancel all open orders of the user by providing the exchange segment and exchange instrument ID.
@@ -615,7 +624,321 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeOrderException("Cancel all order failed", 500)
+            raise UtradeOrderException("Cancel all order failed: " + str(e), 500)
+
+    def place_spread_order(
+        self,
+        exchangeSegment,
+        exchangeInstrumentID,
+        productType,
+        action,
+        orderType,
+        orderDuration,
+        quantity,
+        spreadPrice,
+        spreadExchangeInstrumentID,
+        totalPrice=None,
+        leg1ExchangeSegment=None,
+        leg1ExchangeInstrumentID=None,
+        leg2ExchangeSegment=None,
+        leg2ExchangeInstrumentID=None,
+        clientID=None,
+    ):
+        """
+        Place a spread order.
+
+        Args:
+            exchangeSegment (str): The exchange segment of the spread instrument.
+            exchangeInstrumentID (int): The exchange instrument ID.
+            productType (str): The product type of the order.
+            action (str): The order side (BUY/SELL).
+            orderType (str): The type of order.
+            orderDuration (str): The order duration (e.g. DAY).
+            quantity (str or int): The order quantity.
+            spreadPrice (float): The spread price.
+            spreadExchangeInstrumentID (int): The spread contract instrument ID.
+            totalPrice (float, optional): The total price. Defaults to None.
+            leg1ExchangeSegment (str, optional): First-leg exchange segment.
+            leg1ExchangeInstrumentID (int, optional): First-leg instrument ID.
+            leg2ExchangeSegment (str, optional): Second-leg exchange segment.
+            leg2ExchangeInstrumentID (int, optional): Second-leg instrument ID.
+            clientID (str, optional): The client ID. Required if the user is not an investor client.
+
+        Returns:
+            dict: The API response.
+
+        Raises:
+            UtradeOrderException: If the spread order placement fails.
+        """
+        try:
+            params = {
+                "exchangeSegment": exchangeSegment,
+                "exchangeInstrumentID": exchangeInstrumentID,
+                "productType": productType,
+                "action": action,
+                "orderType": orderType,
+                "orderDuration": orderDuration,
+                "quantity": str(quantity),
+                "spreadPrice": spreadPrice,
+                "spreadExchangeInstrumentID": spreadExchangeInstrumentID,
+            }
+            if totalPrice is not None:
+                params["totalPrice"] = totalPrice
+            if leg1ExchangeSegment is not None:
+                params["leg1ExchangeSegment"] = leg1ExchangeSegment
+            if leg1ExchangeInstrumentID is not None:
+                params["leg1ExchangeInstrumentID"] = leg1ExchangeInstrumentID
+            if leg2ExchangeSegment is not None:
+                params["leg2ExchangeSegment"] = leg2ExchangeSegment
+            if leg2ExchangeInstrumentID is not None:
+                params["leg2ExchangeInstrumentID"] = leg2ExchangeInstrumentID
+
+            if not self.isInvestorClient:
+                params["clientID"] = clientID
+
+            response = self.apiRequest._post("order.spread", json.dumps(params))
+            return response
+        except (Exception, UtradeTokenException) as e:
+            raise UtradeOrderException("Place spread order failed: " + str(e), 500)
+
+    def modify_spread_order(
+        self,
+        orderID,
+        spreadPrice,
+        quantity,
+        productType,
+        action,
+        orderDuration,
+        spreadExchangeInstrumentID=None,
+        orderType=None,
+        clientID=None,
+    ):
+        """
+        Modify an open spread order.
+
+        Args:
+            orderID (str): The master/app order ID of the spread order.
+            spreadPrice (float): The modified spread price.
+            quantity (str or int): The modified quantity.
+            productType (str): The product type of the order.
+            action (str): The order side (BUY/SELL).
+            orderDuration (str): The order duration (e.g. DAY).
+            spreadExchangeInstrumentID (int, optional): The spread contract instrument ID.
+            orderType (str, optional): The order type. Converter defaults to LIMIT if omitted.
+            clientID (str, optional): The client ID. Required if the user is not an investor client.
+
+        Returns:
+            dict: The API response.
+
+        Raises:
+            UtradeOrderException: If the spread order modification fails.
+        """
+        try:
+            params = {
+                "orderID": str(orderID),
+                "spreadPrice": spreadPrice,
+                "quantity": str(quantity),
+                "productType": productType,
+                "action": action,
+                "orderDuration": orderDuration,
+            }
+            if spreadExchangeInstrumentID is not None:
+                params["spreadExchangeInstrumentID"] = spreadExchangeInstrumentID
+            if orderType is not None:
+                params["orderType"] = orderType
+
+            if not self.isInvestorClient:
+                params["clientID"] = clientID
+
+            response = self.apiRequest._put("order.spread", json.dumps(params))
+            return response
+        except (Exception, UtradeTokenException) as e:
+            raise UtradeOrderException("Modify spread order failed: " + str(e), 500)
+
+    def cancel_spread_order(self, orderID, clientID=None):
+        """
+        Cancel an open spread order.
+
+        Args:
+            orderID (str): The master/app order ID of the spread order.
+            clientID (str, optional): The client ID. Required if the user is not an investor client.
+
+        Returns:
+            dict: The API response.
+
+        Raises:
+            UtradeOrderException: If the spread order cancellation fails.
+        """
+        try:
+            params = {"orderID": str(orderID)}
+
+            if not self.isInvestorClient:
+                params["clientID"] = clientID
+
+            response = self.apiRequest._delete("order.spread", params)
+            return response
+        except (Exception, UtradeTokenException) as e:
+            raise UtradeOrderException("Cancel spread order failed: " + str(e), 500)
+
+    def get_spread_order_book(self, clientID=None):
+        """
+        Retrieve the spread order book.
+
+        Args:
+            clientID (str, optional): The client ID. Required if the user is not an investor client.
+
+        Returns:
+            dict: The API response containing spread orders.
+
+        Raises:
+            UtradeOrderException: If the request to get the spread order book fails.
+        """
+        try:
+            params = {}
+
+            if not self.isInvestorClient:
+                params["clientID"] = clientID
+
+            response = self.apiRequest._get("order.spread", params)
+            return response
+        except (Exception, UtradeTokenException) as e:
+            raise UtradeOrderException("Get spread order book failed: " + str(e), 500)
+
+    def get_order_margin(self, portfolio, clientID=None):
+        """
+        Get required vs available margin for one or more prospective orders.
+
+        Args:
+            portfolio (list): List of order legs. Each leg should include exchange,
+                exchangeInstrumentId, productType, orderType, orderSide, quantity,
+                price, stopPrice, and optionally orderSessionType.
+            clientID (str, optional): The client ID. Required if the user is not an investor client.
+
+        Returns:
+            dict: The API response containing brokerage/margin details.
+
+        Raises:
+            UtradeGeneralException: If the margin request fails.
+        """
+        try:
+            params = {"portfolio": portfolio}
+
+            if not self.isInvestorClient:
+                params["clientID"] = clientID
+
+            response = self.apiRequest._post("order.margindetails", json.dumps(params))
+            return response
+        except (Exception, UtradeTokenException) as e:
+            raise UtradeGeneralException("Get order margin failed: " + str(e), 500)
+
+    def get_modify_order_margin(self, orderID, instrumentInformation, clientID=None):
+        """
+        Get required vs available margin for a prospective order modification.
+
+        Args:
+            orderID (str): The ID of the order being modified.
+            instrumentInformation (dict): Modified order fields including exchange,
+                exchangeInstrumentId, orderSide, orderSessionType, productType,
+                orderType, quantity, price, and stopPrice.
+            clientID (str, optional): The client ID. Required if the user is not an investor client.
+
+        Returns:
+            dict: The API response containing brokerage/margin details.
+
+        Raises:
+            UtradeGeneralException: If the modify-margin request fails.
+        """
+        try:
+            params = {
+                "orderID": str(orderID),
+                "instrumentInformation": instrumentInformation,
+            }
+
+            if not self.isInvestorClient:
+                params["clientID"] = clientID
+
+            response = self.apiRequest._post(
+                "order.modifyordermargindetails", json.dumps(params)
+            )
+            return response
+        except (Exception, UtradeTokenException) as e:
+            raise UtradeGeneralException("Get modify order margin failed: " + str(e), 500)
+
+    def squareoff(
+        self,
+        exchangeSegment,
+        exchangeInstrumentID,
+        productType,
+        squareoffMode,
+        squareOffQtyValue,
+        positionSquareOffQuantityType,
+        clientID=None,
+    ):
+        """
+        Square off an open position for a specific instrument.
+
+        Args:
+            exchangeSegment (str): The exchange segment of the position.
+            exchangeInstrumentID (int): The exchange instrument ID.
+            productType (str): The product type of the position.
+            squareoffMode (str): The square-off mode.
+            squareOffQtyValue (int): Quantity or percentage to square off.
+            positionSquareOffQuantityType (str): How squareOffQtyValue is interpreted
+                (ExactQty or ExactPercentage).
+            clientID (str, optional): The client ID. Required if the user is not an investor client.
+
+        Returns:
+            dict: The API response.
+
+        Raises:
+            UtradeGeneralException: If the square-off request fails.
+        """
+        try:
+            params = {
+                "exchangeSegment": exchangeSegment,
+                "exchangeInstrumentID": exchangeInstrumentID,
+                "productType": productType,
+                "squareoffMode": squareoffMode,
+                "squareOffQtyValue": squareOffQtyValue,
+                "positionSquareOffQuantityType": positionSquareOffQuantityType,
+            }
+
+            if not self.isInvestorClient:
+                params["clientID"] = clientID
+
+            response = self.apiRequest._post(
+                "portfolio.squareoff", json.dumps(params)
+            )
+            return response
+        except (Exception, UtradeTokenException) as e:
+            raise UtradeGeneralException("Square off failed: " + str(e), 500)
+
+    def squareoff_all(self, squareoffMode, clientID=None):
+        """
+        Square off all open positions.
+
+        Args:
+            squareoffMode (str): The square-off mode.
+            clientID (str, optional): The client ID. Required if the user is not an investor client.
+
+        Returns:
+            dict: The API response.
+
+        Raises:
+            UtradeGeneralException: If the square-off-all request fails.
+        """
+        try:
+            params = {"squareoffMode": squareoffMode}
+
+            if not self.isInvestorClient:
+                params["clientID"] = clientID
+
+            response = self.apiRequest._post(
+                "portfolio.squareoffall", json.dumps(params)
+            )
+            return response
+        except (Exception, UtradeTokenException) as e:
+            raise UtradeGeneralException("Square off all failed: " + str(e), 500)
 
     def interactive_logout(self, clientID=None):
         """
@@ -647,4 +970,4 @@ class UtradeOrderConnect(UtradeCommon):
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions gracefully and return an error description
-            raise UtradeTokenException("Interactive logout failed", 500)
+            raise UtradeTokenException("Interactive logout failed: " + str(e), 500)

@@ -220,7 +220,128 @@ class TestUtradeOrderConnect(unittest.TestCase):
         except Exception as e:
             print("Error occurred while canceling all orders:", str(e))
 
-    def test_w_interactive_logout(self):
+    def test_w_place_spread_order(self):
+        try:
+            response = TestAttributes.order_connect.place_spread_order(
+                exchangeSegment="NSEFO",
+                exchangeInstrumentID=13620424,
+                productType="NRML",
+                action="BUY",
+                orderType="LIMIT",
+                orderDuration="DAY",
+                quantity=75,
+                spreadPrice=1000,
+                spreadExchangeInstrumentID=13620424,
+                clientID=TestAttributes.client_id,
+            )
+            print("Place Spread Order : ", response)
+        except Exception as e:
+            print("Error occurred while placing spread order:", str(e))
+
+    def test_x_modify_spread_order(self):
+        try:
+            response = TestAttributes.order_connect.modify_spread_order(
+                orderID="1240992685",
+                spreadPrice=900,
+                quantity=75,
+                productType="NRML",
+                action="BUY",
+                orderDuration="DAY",
+                spreadExchangeInstrumentID=13687399,
+                clientID=TestAttributes.client_id,
+            )
+            print("Modify Spread Order : ", response)
+        except Exception as e:
+            print("Error occurred while modifying spread order:", str(e))
+
+    def test_y_get_spread_order_book(self):
+        try:
+            response = TestAttributes.order_connect.get_spread_order_book(
+                clientID=TestAttributes.client_id
+            )
+            print("Spread Order Book : ", response)
+        except Exception as e:
+            print("Error occurred while getting spread order book:", str(e))
+
+    def test_z_cancel_spread_order(self):
+        try:
+            response = TestAttributes.order_connect.cancel_spread_order(
+                orderID="1240992685",
+                clientID=TestAttributes.client_id,
+            )
+            print("Cancel Spread Order : ", response)
+        except Exception as e:
+            print("Error occurred while canceling spread order:", str(e))
+
+    def test_za_get_order_margin(self):
+        try:
+            response = TestAttributes.order_connect.get_order_margin(
+                portfolio=[
+                    {
+                        "exchange": 1,
+                        "exchangeInstrumentId": 2885,
+                        "productType": "NRML",
+                        "orderType": "LIMIT",
+                        "orderSide": "BUY",
+                        "quantity": 1,
+                        "price": 1200,
+                        "stopPrice": 1180,
+                        "orderSessionType": "NORMAL",
+                    }
+                ],
+                clientID=TestAttributes.client_id,
+            )
+            print("Order Margin : ", response)
+        except Exception as e:
+            print("Error occurred while getting order margin:", str(e))
+
+    def test_zb_get_modify_order_margin(self):
+        try:
+            response = TestAttributes.order_connect.get_modify_order_margin(
+                orderID="1210910568",
+                instrumentInformation={
+                    "exchange": 1,
+                    "exchangeInstrumentId": 2885,
+                    "orderSide": "BUY",
+                    "orderSessionType": 1,
+                    "productType": "NRML",
+                    "orderType": "LIMIT",
+                    "quantity": 1,
+                    "price": 1200,
+                    "stopPrice": 1190,
+                },
+                clientID=TestAttributes.client_id,
+            )
+            print("Modify Order Margin : ", response)
+        except Exception as e:
+            print("Error occurred while getting modify order margin:", str(e))
+
+    def test_zc_squareoff(self):
+        try:
+            response = TestAttributes.order_connect.squareoff(
+                exchangeSegment="NSECM",
+                exchangeInstrumentID=2885,
+                productType="MIS",
+                squareoffMode="Regular",
+                squareOffQtyValue=1,
+                positionSquareOffQuantityType="ExactQty",
+                clientID=TestAttributes.client_id,
+            )
+            print("Square Off : ", response)
+        except Exception as e:
+            print("Error occurred while squaring off:", str(e))
+
+    def test_zd_squareoff_all(self):
+        try:
+            response = TestAttributes.order_connect.squareoff_all(
+                squareoffMode="Regular",
+                clientID=TestAttributes.client_id,
+            )
+            print("Square Off All : ", response)
+        except Exception as e:
+            print("Error occurred while squaring off all:", str(e))
+
+    def test_ze_interactive_logout(self):
         try:
             # Call the interactive_logout method
             response = TestAttributes.order_connect.interactive_logout(

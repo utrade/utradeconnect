@@ -9,6 +9,12 @@ class UtradeMarketConnect(UtradeCommon):
     def __init__(self, config, apiKey, secretKey) -> None:
         # initialize the UtradeCommon class
         super().__init__(config=config, apiKey=apiKey, secretKey=secretKey)
+        # Keep a dedicated request client so interactive login cannot overwrite the market JWT.
+        self.marketRequest = self.apiRequest
+        self.market_apiKey = apiKey
+        self.market_secretKey = secretKey
+        self.market_token = None
+        self.market_userID = None
 
     def marketdata_login(self):
         """
@@ -23,20 +29,19 @@ class UtradeMarketConnect(UtradeCommon):
         try:
             # Prepare the parameters for the market data login request
             params = {
-                "appKey": self.apiKey,
-                "secretKey": self.secretKey,
+                "appKey": self.market_apiKey,
+                "secretKey": self.market_secretKey,
                 "source": self.source,
             }
 
             # Send a POST request to the "market.login" endpoint
-            response = self.apiRequest._post("market.login", params)
-            
-            # Print the response for debugging purposes
+            response = self.marketRequest._post("market.login", params)
 
             # Check if a "token" is present in the response
-            if "token" in response['result']:
-                # Set common variables with the token and user ID
-                self._set_common_variables(response['result']['token'], response['result']['userID'], False)
+            if response.get("result") and "token" in response["result"]:
+                self.market_token = response["result"]["token"]
+                self.market_userID = response["result"]["userID"]
+                self.marketRequest.token = self.market_token
             
             # Return the response from the API
             return response
@@ -59,7 +64,7 @@ class UtradeMarketConnect(UtradeCommon):
             params = {}
 
             # Send a GET request to retrieve market configuration
-            response = self.apiRequest._get('market.config', params)
+            response = self.marketRequest._get('market.config', params)
 
             # Return the response obtained
             return response
@@ -87,7 +92,7 @@ class UtradeMarketConnect(UtradeCommon):
             params = {'instruments': instruments, 'eventCode': eventCode, 'publishFormat': publishFormat}
             
             # Send a POST request to retrieve quotes
-            response = self.apiRequest._post('market.instruments.quotes', json.dumps(params))
+            response = self.marketRequest._post('market.instruments.quotes', json.dumps(params))
             
             # Return the response obtained
             return response
@@ -114,7 +119,7 @@ class UtradeMarketConnect(UtradeCommon):
             params = {'instruments': instruments, 'eventCode': eventCode}
             
             # Send a POST request to subscribe to instruments
-            response = self.apiRequest._post('market.instruments.subscription', json.dumps(params))
+            response = self.marketRequest._post('market.instruments.subscription', json.dumps(params))
             
             # Return the response obtained
             return response
@@ -141,7 +146,7 @@ class UtradeMarketConnect(UtradeCommon):
             params = {'instruments': instruments, 'eventCode': eventCode}
             
             # Send a PUT request to unsubscribe from instruments
-            response = self.apiRequest._put('market.instruments.unsubscription', json.dumps(params))
+            response = self.marketRequest._put('market.instruments.unsubscription', json.dumps(params))
             
             # Return the response obtained
             return response
@@ -168,7 +173,7 @@ class UtradeMarketConnect(UtradeCommon):
             params = {"exchangeSegmentList": exchangeSegmentList}
             
             # Send a POST request to get master data
-            response = self.apiRequest._post('market.instruments.master', json.dumps(params))
+            response = self.marketRequest._post('market.instruments.master', json.dumps(params))
             
             # Return the response obtained
             return response
@@ -205,7 +210,7 @@ class UtradeMarketConnect(UtradeCommon):
             }
             
             # Send a GET request to retrieve OHLC data
-            response = self.apiRequest._get('market.instruments.ohlc', params)
+            response = self.marketRequest._get('market.instruments.ohlc', params)
             
             # Return the response obtained
             return response
@@ -232,7 +237,7 @@ class UtradeMarketConnect(UtradeCommon):
             params = {'exchangeSegment': exchangeSegment}
             
             # Send a GET request to get series information
-            response = self.apiRequest._get('market.instruments.instrument.series', params)
+            response = self.marketRequest._get('market.instruments.instrument.series', params)
             
             # Return the response obtained
             return response
@@ -260,7 +265,7 @@ class UtradeMarketConnect(UtradeCommon):
             params = {'exchangeSegment': exchangeSegment, 'series': series, 'symbol': symbol}
             
             # Send a GET request to get equity symbols
-            response = self.apiRequest._get('market.instruments.instrument.equitysymbol', params)
+            response = self.marketRequest._get('market.instruments.instrument.equitysymbol', params)
             
             # Return the response obtained
             return response
@@ -288,7 +293,7 @@ class UtradeMarketConnect(UtradeCommon):
             params = {'exchangeSegment': exchangeSegment, 'series': series, 'symbol': symbol}
             
             # Send a GET request to get expiry date information
-            response = self.apiRequest._get('market.instruments.instrument.expirydate', params)
+            response = self.marketRequest._get('market.instruments.instrument.expirydate', params)
             
             # Return the response obtained
             return response
@@ -317,7 +322,7 @@ class UtradeMarketConnect(UtradeCommon):
             params = {'exchangeSegment': exchangeSegment, 'series': series, 'symbol': symbol, 'expiryDate': expiryDate}
             
             # Send a GET request to get future symbols
-            response = self.apiRequest._get('market.instruments.instrument.futuresymbol', params)
+            response = self.marketRequest._get('market.instruments.instrument.futuresymbol', params)
             
             # Return the response obtained
             return response
@@ -349,7 +354,7 @@ class UtradeMarketConnect(UtradeCommon):
                     'optionType': optionType, 'strikePrice': strikePrice}
             
             # Send a GET request to get option symbols
-            response = self.apiRequest._get('market.instruments.instrument.optionsymbol', params)
+            response = self.marketRequest._get('market.instruments.instrument.optionsymbol', params)
             
             # Return the response obtained
             return response
@@ -378,13 +383,47 @@ class UtradeMarketConnect(UtradeCommon):
             params = {'exchangeSegment': exchangeSegment, 'series': series, 'symbol': symbol, 'expiryDate': expiryDate}
             
             # Send a GET request to get option types
-            response = self.apiRequest._get('market.instruments.instrument.optiontype', params)
+            response = self.marketRequest._get('market.instruments.instrument.optiontype', params)
             
             # Return the response obtained
             return response
         except (Exception, UtradeTokenException) as e:
             # Handle exceptions and return a description of the error
             raise UtradeGeneralException("Error while retrieving option types: " + str(e))
+
+    def get_strike_price(self, exchangeSegment, series, symbol, expiryDate, optionType):
+        """
+        Get strike prices for an option chain.
+
+        Args:
+            exchangeSegment (str): The exchange segment of the instrument.
+            series (str): The series of the instrument.
+            symbol (str): The symbol of the instrument.
+            expiryDate (str): The expiry date of the instrument.
+            optionType (str): The option type.
+
+        Returns:
+            dict: The response obtained from the API request. ``result`` is a list of strike strings.
+
+        Raises:
+            UtradeGeneralException: If there is an error while retrieving strike prices.
+        """
+        try:
+            params = {
+                'exchangeSegment': exchangeSegment,
+                'series': series,
+                'symbol': symbol,
+                'expiryDate': expiryDate,
+                'optionType': optionType,
+            }
+
+            response = self.marketRequest._get(
+                'market.instruments.instrument.strikeprice', params
+            )
+
+            return response
+        except (Exception, UtradeTokenException) as e:
+            raise UtradeGeneralException("Error while retrieving strike prices: " + str(e))
 
     def get_index_list(self, exchangeSegment):
         """
@@ -404,7 +443,7 @@ class UtradeMarketConnect(UtradeCommon):
             params = {'exchangeSegment': exchangeSegment}
             
             # Send a GET request to get the list of indices
-            response = self.apiRequest._get('market.instruments.indexlist', params)
+            response = self.marketRequest._get('market.instruments.indexlist', params)
             
             # Return the response obtained
             return response
@@ -430,7 +469,7 @@ class UtradeMarketConnect(UtradeCommon):
             params = {'source': self.source, 'instruments': instruments}
             
             # Send a POST request to search by instrument ID
-            response = self.apiRequest._post('market.search.instrumentsbyid', json.dumps(params))
+            response = self.marketRequest._post('market.search.instrumentsbyid', json.dumps(params))
             
             # Return the response obtained
             return response
@@ -456,7 +495,7 @@ class UtradeMarketConnect(UtradeCommon):
             params = {'searchString': searchString}
             
             # Send a GET request to search by script name
-            response = self.apiRequest._get('market.search.instrumentsbystring', params)
+            response = self.marketRequest._get('market.search.instrumentsbystring', params)
             
             # Return the response obtained
             return response
@@ -479,7 +518,7 @@ class UtradeMarketConnect(UtradeCommon):
             params = {}
 
             # Send a DELETE request to log out from market data
-            response = self.apiRequest._delete('market.logout', params)
+            response = self.marketRequest._delete('market.logout', params)
 
             # Return the response obtained
             return response
